@@ -1,0 +1,194 @@
+# ##############################
+# Install data labs
+#
+# ##############################
+
+cd ~
+wget https://bootlin.com/doc/training/embedded-linux/embedded-linux-labs.tar.xz
+tar xvf embedded-linux-labs.tar.xz
+
+
+
+ ##############################################################################
+# RACOMMANDATIONS
+#
+# You should only use the root user for operations that require super-user 
+# privileges, such
+# as: mounting a file system, loading a kernel module, changing file ownership, # configuring
+# the network. Most regular tasks (such as downloading, extracting sources,  
+# compiling...)
+# can be done as a regular user.
+# 
+# ############################################################################
+
+
+#############################################################################
+# RACOMMANDATIONS
+#
+# You should only use the root user for operations that require super-user 
+# privileges, such
+# as: mounting a file system, loading a kernel module, changing file ownership, # configuring
+# the network. Most regular tasks (such as downloading, extracting sources,  
+# compiling...)
+# can be done as a regular user.
+# #############################################################################
+
+# ###########################################################################
+# Chapter 1 - BUILDING CROSS-COMPILE TOOLCHAIN
+#
+# Configure crosstool-ng
+# Execute crosstool-ng and build up your own cross-compiling toolchain
+#
+# ###########################################################################
+
+cd $HOME/embedded-linux-labs/toolchain directory
+sudo apt install build-essential git autoconf bison flex \ texinfo help2man gawk libtool-bin libncurses5-dev
+
+
+# ########################
+# Getting crosstool-ng
+#
+# ########################
+
+git clone https://github.com/crosstool-ng/crosstool-ng.git
+cd crosstool-ng/
+git checkout eb65ba65
+
+# #######################
+# Installing Crosstool-ng
+#
+# #######################
+
+cd crosstool-ng-folder
+./bootstrap
+./configure --enable-local
+make
+
+
+# #####################################
+# Configure Crosstool-ng for procedure
+#
+# Crosstool-ng comes with a set of ready-made configuration files for various # typical setups:
+# Crosstool-ng calls them samples. They can be listed by using 
+# ./ct-ng list-samples
+#
+# We use arm-cortexa5-linux-uclibcgnueabihf
+#
+# #####################################
+
+
+./ct-ng arm-cortexa5-linux-uclibcgnueabihf
+
+
+# #####################################
+# to refine the configuration, let’s run the menuconfig interface:
+# #####################################
+
+./ct-ng menuconfig
+
+# ############################################
+# In Path and misc options:
+# • Change Maximum log level to see to DEBUG so that we can have more details 
+# on what
+# happened during the build in case something went wrong.
+# In Toolchain options:
+# • Set Tuple's alias to arm-linux. This way, we will be able to use the 
+# compiler as arm-
+# linux-gcc instead of arm-cortexa5-linux-uclibcgnueabihf-gcc, which is much 
+# longer
+# to type.
+# In C-library:
+# • Enable IPv6 support. That’s because of Buildroot (which we will use 
+# later, # which doesn’t
+# accept to use toolchains without IPv6 support.
+# In Debug facilities:
+# • Only enable strace support.
+#
+# ####################################################
+
+./ct-ng build
+
+./ct-ng clean (for clean ct-ng build)
+
+# ##############
+# The toolchain will be installed by default in $HOME/x-tools/
+# You can now test your toolchain by adding
+# $HOME/x-tools/arm-cortexa5-linux-# uclibcgnueabihf/bin/ to your PATH 
+# environment variable and compiling the simple hello.c 
+# program in your main
+# lab directory with arm-linux-gcc.
+# Adding environment variable usign:
+# export VAR=$HOME/x-tools/arm-cortexa5-linux-uclibcgnueabihf/bin/:$PATH
+# export VAR=$HOME/x-tools/arm-cortexa5-linux-uclibcgnueabihf/bin/
+#
+#
+# ##############
+
+# ##########################################################
+# Chapter-2 Bootloader-U-Boot
+# Objectives: Set up serial communication, compile and install the
+# U-Boot bootloader, use basic U-Boot commands, set up TFTP com-
+# munication with the development workstation.
+# 
+#• The processor offers nothing to ease the installation of the bootloader, 
+# in which case the
+# JTAG has to be used to initialize flash storage and write the bootloader 
+# code to flash.
+# Detailed knowledge of the hardware is of course required to perform these 
+# operations.
+# • The processor offers a monitor, implemented in ROM, and through which 
+# access to the memories is made easier.
+#
+#
+#
+# ##########################################################
+
+# ##########################################################
+# Downloading Microchip’s flashing tool 
+# 
+# ##########################################################
+
+cd ~/embedded-linux-labs/bootloader
+wget http://ww1.microchip.com/downloads/en/DeviceDoc/sam-ba_2.15.zip
+unzip sam-ba_2.15.zip
+
+# #########################################################
+# From microchip website download microcip's flashing tool
+# in this case sam-ba.
+# For debugging using serial port using picocom
+#
+# sudo apt-get install picocom
+# sudo adduser $USER dialout
+#
+# sudo picocom -b 115200 /dev/ttyUSB0
+#
+# If you wish to exit picocom, press [Ctrl][a] followed by [Ctrl][x]
+#
+# #########################################################
+
+# #########################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
