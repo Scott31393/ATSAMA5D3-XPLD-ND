@@ -27,19 +27,19 @@ Bring up Linux kernel 4.19.9 on ATSAMA5D3-XPLD-ND
 export PATH=/usr/bin:/bin
 
 
-###GUIDE AND SLIDES
+## GUIDE AND SLIDES
 
 https://bootlin.com/doc/training/linux-kernel/
 wget https://bootlin.com/doc/training/embedded-linux/embedded-linux-labs.tar.xz
 
-###NEEDED PACKAGES
+## NEEDED PACKAGES
 
 sudo apt install build-essential git autoconf bison flex texinfo help2man gawk libtool-bin libncurses5-dev
 
 ###CROSSTOOL-NG
 git clone https://github.com/crosstool-ng/crosstool-ng.git
 
-###INSTALL-CROSSTOOL-NG
+## INSTALL-CROSSTOOL-NG
 
 ./bootstrap
 ./configure --enable-local
@@ -47,19 +47,19 @@ make
 
 ./ct-ng help [help]
 
-###CONFIGURE TOOLCHAIN TO PRODUCE MANY TOOLCHAIN FOR DIFFERENT ARCHITECTURE
+## CONFIGURE TOOLCHAIN TO PRODUCE MANY TOOLCHAIN FOR DIFFERENT ARCHITECTURE
 
 ./ct-ng arm-cortexa5-linux-uclibcgnueabihf
 ./ct-ng menuconfig
 
-##SET OPTIONS
+## SET OPTIONS
 Path and misc options: --> Change Maximum log level to see to DEBUG
 Toolchain options: --> Set Tuple's alias to "arm-linux"
 C-library: --> Enable IPv6 support
 Debug facilities: --> Only enable strace support
 
 
-###SETTING PATH ENV VARIABLE
+### SETTING PATH ENV VARIABLE
 export  PATH=$HOME/x-tools/arm-cortexa5-linux-uclibcgnueabihf/bin/
 
 ###CLEAN
@@ -73,7 +73,7 @@ arm-linux-gcc hello.c
 wget http://ww1.microchip.com/downloads/en/DeviceDoc/sam-ba_2.15.zip
 
 
-###SETTING UP SERIAL COMMUNICATION WITH THE BOARD
+## SETTING UP SERIAL COMMUNICATION WITH THE BOARD
 install picocom --> sudo apt install picocom
 sudo adduser $USER dialout
 picocom -b 115200 /dev/ttyUSB0
@@ -92,7 +92,7 @@ make sama5d3_xplainednf_uboot_defconfig
 #SET ENVIRONMENT VARIABLE
 export CROSS_COMPILE=arm-linux
 
-###AT91Bootstrap SETUP
+## AT91Bootstrap SETUP
 remove the NAND CS jumper on the board
 press the RESET button
 Put the jumper back
@@ -109,7 +109,7 @@ keep sam-ba open!!!!
 
 
 
-###U-BOOT SETUP
+## U-BOOT SETUP
 download u-boot-->wget ftp://ftp.denx.de/pub/u-boot/u-boot-2017.09.tar.bz2 
 make <NAME>_defconfig   NAME = sama5d3_xplained_nandflash
 sudo apt install device-tree-compiler
@@ -142,7 +142,7 @@ Reset the board and check that it boots your new bootloaders
 --->help to see u-boot commands
 
 
-####Setting up Ethernet communication (Using tftp)
+## Setting up Ethernet communication (Using tftp)
 
 sudo apt-get install tftp
 
@@ -215,7 +215,7 @@ Verify with:
 
 md 0x22000000
 
-####Kernel sources
+## Get Kernel sources
 
 Get the kernel sources
 
@@ -225,6 +225,6 @@ EG.
 -> 4.17.1
 -> 4.18.2
 
-##### Kernel - Cross-compilingKernel
+## Kernel - Cross-compilingKernel
 
 Go to the $HOME/embedded-linux-labs/kernel directory
