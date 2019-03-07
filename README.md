@@ -16,11 +16,11 @@ Bring up Linux kernel 5.0 on ATSAMA5D3-XPLD-ND
 
 # Board Datasheet
 
-## Memory Mapping
+## Memory Mapping ATSAMA5D3-XPLAINED
 
 ![alt text](./imgs/memory_mapping.png)
 
-# Commands Cheatsheet
+# GUIDE
 
 
 ##LS COMMAND
@@ -39,7 +39,7 @@ sudo apt install build-essential git autoconf bison flex texinfo help2man gawk l
 ###CROSSTOOL-NG
 git clone https://github.com/crosstool-ng/crosstool-ng.git
 
-## INSTALL-CROSSTOOL-NG
+# INSTALL-CROSSTOOL-NG
 
 ./bootstrap
 ./configure --enable-local
@@ -81,59 +81,99 @@ picocom -b 115200 /dev/ttyUSB0
 
 
 
-###AT91BOOTSTRAP SETUP BOOTSTRAP IN SRAM THAT INITIALIZE DRAM WITH U-BOOT INSIDE THAT LOAD THE LINUX KERNEL
+#  AT91BOOTSTRAP SETUP BOOTSTRAP IN SRAM THAT INITIALIZE DRAM WITH U-BOOT INSIDE THAT LOAD THE LINUX KERNEL
+
 git clone https://github.com/linux4sam/at91bootstrap.git
+
 cd at91bootstrap
+
 git checkout v3.8.9
 
 
-###BUILD THE TOOLCHAIN
+### BUILD THE TOOLCHAIN
+
 ./ct-ng build  (BUILT IN  $HOME/x-tools/)
+
 make sama5d3_xplainednf_uboot_defconfig
 
 #SET ENVIRONMENT VARIABLE
 export CROSS_COMPILE=arm-linux
 
-## AT91Bootstrap SETUP
+#  AT91Bootstrap SETUP
+
+![alt text](./imgs/nand_mm.png "Logo Title Text 1")
+
+
 remove the NAND CS jumper on the board
+
 press the RESET button
+
 Put the jumper back
+
 running samba64 
+
 ./sam-ba_64 in his folder
+
 Select the ttyACM0 connection, and the at91sama5d3x-xplained board. Hit Connect.
+
 Hit the NANDFlash tab
+
 In the Scripts choices, select Enable NandFlash and hit Execute
+
 Select Erase All, and execute the command
-Then, select and execute Enable OS PMECC parameters in order to change the NAND ECC parameters to what RomBOOT expects.
+
+Then, select and execute Enable OS PMECC parameters in order to change the NAND ECC
+parameters to what RomBOOT expects.
+
 Finally, send the image we just compiled using the command Send Boot File
 
 keep sam-ba open!!!!
 
 
 
-## U-BOOT SETUP
+#  U-BOOT SETUP [Shrinking]
+
 download u-boot-->wget ftp://ftp.denx.de/pub/u-boot/u-boot-2017.09.tar.bz2 
+
 make <NAME>_defconfig   NAME = sama5d3_xplained_nandflash
+
 sudo apt install device-tree-compiler
+
 make that build u-boot
+
 Look at the size of the u-boot.bin --> ls -l <FILE-NAME> --> too large
+
 make menuconfig, look for and disable the below options
+
 ext4 options
+
 • nfs options
+
 • USB options
+
 • SPL options
+
 • XIMG support
+
 • FIT (Flattened Image Tree) support
+
 • CMD_ELF option
+
 • dhcp command support
+
 • Regular expression support (REGEX)
+
 • loadb support
+
 • CMD_MII option
 
 recompile --> make
 
 
-###FLASHING U-BOOT
+# FLASHING U-BOOT
+
+![alt text](./imgs/nand_mm.png "Logo Title Text 1")
+
 In sam-ba, in the Send File Name field, set the path to the u-boot.bin that was just
 compiled, and set the address to 0x40000. Click on the Send File button.
 
@@ -144,7 +184,7 @@ Reset the board and check that it boots your new bootloaders
 --->help to see u-boot commands
 
 
-## Setting up Ethernet communication (Using tftp)
+# Setting up Ethernet communication (Using tftp)
 
 sudo apt-get install tftp
 
@@ -243,17 +283,9 @@ Restart the TFTP Service:
 
 $ sudo /etc/init.d/xinetd restart
 
-## Get Kernel sources
+# Get Kernel - Cross-compile Kernel
 
-Get the kernel sources
-
-wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.17.6.tar.xz (CHANGE THE VERSION)
-
-EG.
--> 4.17.1
--> 4.18.2
-
-## Kernel - Cross-compiling Kernel
+![alt text](./imgs/linux_archive.png "Logo Title Text 1")
 
 Download your kernel version https://mirrors.edge.kernel.org/pub/linux/kernel/
 
@@ -264,20 +296,30 @@ Go to the $HOME/embedded-linux-labs/kernel directory:
 ######################CORE-KERNEL-CHANGES##########################################################
 
 arch/arm/mm/flush.c | 1 +
+
  1 file changed, 1 insertion(+)
 
+
 diff --git a/arch/arm/mm/flush.c b/arch/arm/mm/flush.c
+
 index 58469623b015..5345f86c56d2 100644
+
 --- a/arch/arm/mm/flush.c
+
 +++ b/arch/arm/mm/flush.c
+
 @@ -295,6 +295,7 @@ void __sync_icache_dcache(pte_t pteval)
+
  	if (pte_exec(pteval))
+
  		__flush_icache_all();
+
  }
+
 +EXPORT_SYMBOL_GPL(__sync_icache_dcache);
- #endif
-=20
- /*
+
+#endif
+
 
 
 #################INSTRUCTIONS################################################################
@@ -297,6 +339,18 @@ After build you can find the Kernel image (zImage) in:
 arch/arm/boot/
 
 # Compile Device Tree Source
+
+linaro_guide_pdf -> ./device_tree_guide.pdf
+
+![alt text](./imgs/linaro.png "Logo Title Text 1")
+
+tutorial -> http://junyelee.blogspot.com/2015/07/a-tutorial-on-device-tree.html?m=1
+
+language -> https://elinux.org/Device_Tree_Usage
+
+![alt text](./imgs/dtree.png "Logo Title Text 1")
+
+
 
 To compile .dts for our board ( at91-sama5d3_xplained.dts ) in his relative blob at91-sama5d3_xplained.dtb:
 
@@ -325,11 +379,15 @@ Hi all,
 After compiling your kernel, check this directory: /arch/arm/boot/dts copy these three files:
 
 skeleton.dtsi
+
 socfpga.dtsi
+
 socfpga_cyclone5.dts
+
 Now from the Embedded Command Shell, compile these files into a single .dtb file:
 
 dtc -I dts -O dtb -o socfpga.dtb socfpga_cyclone5.dts
+
 Copy the generated socfpga.dtb to your SD card and you should be able to boot kernel.
 
 I tried this with kernel version 3.10-ltsi, and I think all kernel versions come with .dts files.
@@ -343,3 +401,6 @@ Note that you should edit .dts files according to the implemented hardware desig
 
 
 Read the Linaro guide in this Folder (4_6048767180722406692.pdf)
+
+
+# Load and boot the kernel using U-Boot
