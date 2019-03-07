@@ -1,5 +1,5 @@
 # ATSAMA5D3-XPLD-ND
-Bring up Linux kernel 4.19.9 on ATSAMA5D3-XPLD-ND
+Bring up Linux kernel 5.0 on ATSAMA5D3-XPLD-ND
 
 
 ## Board Connections
@@ -77,6 +77,8 @@ wget http://ww1.microchip.com/downloads/en/DeviceDoc/sam-ba_2.15.zip
 install picocom --> sudo apt install picocom
 sudo adduser $USER dialout
 picocom -b 115200 /dev/ttyUSB0
+
+
 
 
 ###AT91BOOTSTRAP SETUP BOOTSTRAP IN SRAM THAT INITIALIZE DRAM WITH U-BOOT INSIDE THAT LOAD THE LINUX KERNEL
@@ -215,6 +217,32 @@ Verify with:
 
 md 0x22000000
 
+
+############################ ETHERNET ISSUES ###########################
+setting up tftp server (https://docs.khadas.com/vim1/SetupTFTPServer.html)
+
+sudo apt-get install openbsd-inetd tftpd tft
+
+apt-get install inetutils-inetd
+
+sudo apt-get update -y
+
+sudo apt-get install -y xinetd
+
+To enable the TFTP server, edit the file /etc/inetd.conf as the root user, and locate the line that looks like the following:
+
+#tftp   dgram   udp     wait    root    /usr/sbin/tcpd  /usr/sbin/in.tftpd
+Uncomment this line, and add the option and value -s /srv/tftp to the end of this line:
+
+tftp   dgram   udp   wait   root   /usr/sbin/tcpd  /usr/sbin/in.tftpd -s /srv/tftp
+Create and modify permissions on the TFTP root directory:
+
+$ sudo mkdir /srv/tftp
+$ sudo chown -R $(whoami) /srv/tftp
+Restart the TFTP Service:
+
+$ sudo /etc/init.d/xinetd restart
+
 ## Get Kernel sources
 
 Get the kernel sources
@@ -225,6 +253,93 @@ EG.
 -> 4.17.1
 -> 4.18.2
 
-## Kernel - Cross-compilingKernel
+## Kernel - Cross-compiling Kernel
 
-Go to the $HOME/embedded-linux-labs/kernel directory
+Download your kernel version https://mirrors.edge.kernel.org/pub/linux/kernel/
+
+Go to the $HOME/embedded-linux-labs/kernel directory:
+
+
+
+######################CORE-KERNEL-CHANGES##########################################################
+
+arch/arm/mm/flush.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/mm/flush.c b/arch/arm/mm/flush.c
+index 58469623b015..5345f86c56d2 100644
+--- a/arch/arm/mm/flush.c
++++ b/arch/arm/mm/flush.c
+@@ -295,6 +295,7 @@ void __sync_icache_dcache(pte_t pteval)
+ 	if (pte_exec(pteval))
+ 		__flush_icache_all();
+ }
++EXPORT_SYMBOL_GPL(__sync_icache_dcache);
+ #endif
+=20
+ /*
+
+
+#################INSTRUCTIONS################################################################
+
+export PATH="~/x-tools/arm-cortexa5-linux-uclibcgnueabihf/bin/":$PATH
+
+export CROSS_COMPILE="arm-linux-"
+
+export ARCH="arm"
+
+make menuconfig
+
+make -j[core numbers]
+
+After build you can find the Kernel image (zImage) in:
+
+arch/arm/boot/
+
+# Compile Device Tree Source
+
+To compile .dts for our board ( at91-sama5d3_xplained.dts ) in his relative blob at91-sama5d3_xplained.dtb:
+
+
+
+https://stackoverflow.com/questions/28502757/imx6-device-tree-compilation-fatal-error-unable-to-parse-input-tree
+
+
+
+make ARCH=arm CROSS_COMPILE=arm-linux- sama5_defconfig [ Search in ---> arch/arm/configs your board ]
+
+make
+
+make ARCH=arm CROSS_COMPILE=arm-linux- dtbs
+
+
+Compiled .dtb is in arch/arm/boot/dts folder
+
+# Create Custom Device Tree Blob
+
+###############################################################################################
+
+HOW CREATE FIRST .dtb
+
+Hi all,
+After compiling your kernel, check this directory: /arch/arm/boot/dts copy these three files:
+
+skeleton.dtsi
+socfpga.dtsi
+socfpga_cyclone5.dts
+Now from the Embedded Command Shell, compile these files into a single .dtb file:
+
+dtc -I dts -O dtb -o socfpga.dtb socfpga_cyclone5.dts
+Copy the generated socfpga.dtb to your SD card and you should be able to boot kernel.
+
+I tried this with kernel version 3.10-ltsi, and I think all kernel versions come with .dts files.
+
+Note that you should edit .dts files according to the implemented hardware design. Usually, sopc2dts tool should do that but I have been struggling for a few days with this tool without getting any bootable .dtb file. Probably XML board files I am using are corrupted or incompatible with new kernels, and I could not find working copies for my board DE1-SoC.
+
+
+
+
+##2----> https://forum.rocketboards.org/t/build-own-device-tree-and-linux-kernel/177/13
+
+
+Read the Linaro guide in this Folder (4_6048767180722406692.pdf)

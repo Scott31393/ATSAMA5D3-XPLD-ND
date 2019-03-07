@@ -1,0 +1,112 @@
+ 
+######################CORE-KERNEL-CHANGES##########################################################
+
+arch/arm/mm/flush.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/mm/flush.c b/arch/arm/mm/flush.c
+index 58469623b015..5345f86c56d2 100644
+--- a/arch/arm/mm/flush.c
++++ b/arch/arm/mm/flush.c
+@@ -295,6 +295,7 @@ void __sync_icache_dcache(pte_t pteval)
+ 	if (pte_exec(pteval))
+ 		__flush_icache_all();
+ }
++EXPORT_SYMBOL_GPL(__sync_icache_dcache);
+ #endif
+=20
+ /*
+
+
+#################INSTRUCTIONS################################################################
+
+
+https://stackoverflow.com/questions/28502757/imx6-device-tree-compilation-fatal-error-unable-to-parse-input-tree
+
+
+
+make ARCH=arm CROSS_COMPILE=arm-linux- sama5_defconfig [ Search in ---> arch/arm/configs your board ]
+
+make
+
+make ARCH=arm CROSS_COMPILE=arm-linux- dtbs
+
+
+Compiled .dtb is in arch/arm/boot/dts folder
+
+
+###############################################################################################
+
+HOW CREATE FIRST .dtb
+
+Hi all,
+After compiling your kernel, check this directory: /arch/arm/boot/dts copy these three files:
+
+skeleton.dtsi
+socfpga.dtsi
+socfpga_cyclone5.dts
+Now from the Embedded Command Shell, compile these files into a single .dtb file:
+
+dtc -I dts -O dtb -o socfpga.dtb socfpga_cyclone5.dts
+Copy the generated socfpga.dtb to your SD card and you should be able to boot kernel.
+
+I tried this with kernel version 3.10-ltsi, and I think all kernel versions come with .dts files.
+
+Note that you should edit .dts files according to the implemented hardware design. Usually, sopc2dts tool should do that but I have been struggling for a few days with this tool without getting any bootable .dtb file. Probably XML board files I am using are corrupted or incompatible with new kernels, and I could not find working copies for my board DE1-SoC.
+
+
+
+
+##2----> https://forum.rocketboards.org/t/build-own-device-tree-and-linux-kernel/177/13
+
+
+
+
+Hi guys i’m working with de1 cyclone v soc for testing and future de0 for application however i need to fully understand so i could change boards and mod the linux perfect … There are some people lost here but i’m going to describe my process so simple and working with this link “https://rocketboards.org/foswiki/view/Documentation/AVCVGSRD160”. From here and using ubuntu 12.04 runing on virtualbox + many updates for apt-get and git + soc eds 16 linux + quartus 16 linux + smargit; i can tell you it works for 3.10… or 4.5 kernel or others releases of socfpga in the linux-socfpga.git, however you need to know a few things before this happens.
+
+When you use quartus to compile hw of your board (https://rocketboards.org/foswiki/view/Documentation/GSRD160CompileHardwareDesign just for socfpga) it generates something that doesn’t matter right now (Forget .rbf, .sopcinfo, preloader and u-boot.scr and others just for a moment keep it simple) cause our goal is to run linux with a nice kernel version on our board, call it beagleboard, socfpga or whatever … we CAN do it with the example images in my case the release 16.0 “http://releases.rocketboards.org/release/2016.05/gsrd/bin/” mentioned inside the flow of gsrd 16.0 above for rootfs and a preloader image from my own quartus proyect and even a already burn SD card from an example image like the basic “DE1_SoC_FB.img” for De1 SoC everything which at least run, you can start from there.
+
+When you do a “sd card updating or creating” there is a file descriptor of your hardware which is *.dts and that is the most important to understand (nowadays i’m trying to understand this file) because it resumes the hardware configs and other stuff to tell the kernel how to start doing stuff so this is the headache when you get “Starting kernel” Stuck!! the DTS!!! (Binary form is a DTB!! but its the same thing so relax these two types dts or dtb).
+
+@sirajmuhammad is right about *.dts being extracted from the kernel compilation which is actually “socfpga_cyclone5.dts” but this one includes “socfpga_cyclone5.dtsi” and this one includes “skeleton.dtsi”, however when you are in an upper branch of the git (in my case a tag with socfpga release 4.5 kernel) there are other includes nested more!!! so it is a headache doing a dtc execution :(. But don’t worry the kernel compilation environmet will make you happy again, please folow gsdr 16.0 and compile “make zImage” as usual with exported ARCH and CROSS_COMPILE variables so you can finally do this “”“make dtbs”"" because THIS!!! will do the job for you and over the path /arch/arm/boot/dts/ you will find the fully final compiled socfpga_cyclone5.dtb!!! so you don’t need dtc headaches from embedded_command_shelll.sh of SOC_EDS 16.0 at the moment ;).
+
+When you have zImage with the mentioned *.dtb from the same kernel compilation, your kernel is never going to get stuck again in “Starting kernel”. To resume i did a burn on my SD card with a default image of CD from terasic “DE1_SoC_FB.img” then i replace socfpga.dts and zImage so now i’m runing angstrom kernel version 4.5!! Sweet.
+
+That was a big week understanding however my ethernet is not working, so maybe dts has something to explain to me because malconfigure my unrepeatable De1SoC hardware so i decompile the dtb file to a dts file from kernel metioned and dts from terasic image “DE1_SoC_FB.img” (Yes from dtb to dts using “dtc” tool from SoCEDS shell using options “-I dtb -O dts” and its really simple cause it is the same exactly file but in other format) i just copy the ethernet parts of one dts (Terasic Image) to the other dts (Kernel extracted dtb converted to a dts through dtc) and finally i convert the modified dts file to dtb again using “dtc -I dts -O dtb” copy this one to the sd card and starting linux again.
+
+WHAT HAPPENED: This new dtb file from a edited dts file makes my ethernet work again over the release 3.10 kernel tag or branch whatever… it doesn’t work with 4.5 kernel release for socfpga tag :(.
+
+REFLECTION: Maybe I need to get more in touch with preloader, u-boot.img over the raw partition A2 of my sd card or even a rootfs/* compiled by me from kernel environment of git, maybe a “make menuconfig” :slight_smile: so i’m on it guys.
+
+CONCLUSIONS:
+A. At the beginning just use dts files to do a dtb file all from the kernel environment (linux-socfpga.git in my case) and use “make dtbs” with ARCH and CROSS_COMPILE vars exported so this will save you a massive headache.
+B. When you have your .dtb you can use embedded_command_shell.sh and the “dtc” tool to get this back to a .dts file that you can edit compare and understand. Do what you want to explore with this file, compile it back to .dts with “dtc” tool again and try to understand how this affect the “Starting kernel …” stuck. Maybe upload a post explaining .dts relation between kernel and hardware stuff “.qsys .sopcinfo for socfpga” maybe sopc2dts is obsolete or not, that will be nice to analyse.
+C. When you get your linux runing with your hardware setting up and working well maybe you already understand preloader u-boot dynamics and the relations of these ones with the linux filesystem “rootfs/*”, its necesary to compile the filesystem from the same kernel compilation environment? there is a need to do some configs over the git files? please share what you do :).
+
+
+
+############################ETHERNET ISSUES###########################
+setting up tftp server (https://docs.khadas.com/vim1/SetupTFTPServer.html)
+
+sudo apt-get install openbsd-inetd tftpd tft
+
+apt-get install inetutils-inetd
+
+sudo apt-get update -y
+
+sudo apt-get install -y xinetd
+
+To enable the TFTP server, edit the file /etc/inetd.conf as the root user, and locate the line that looks like the following:
+
+#tftp   dgram   udp     wait    root    /usr/sbin/tcpd  /usr/sbin/in.tftpd
+Uncomment this line, and add the option and value -s /srv/tftp to the end of this line:
+
+tftp   dgram   udp   wait   root   /usr/sbin/tcpd  /usr/sbin/in.tftpd -s /srv/tftp
+Create and modify permissions on the TFTP root directory:
+
+$ sudo mkdir /srv/tftp
+$ sudo chown -R $(whoami) /srv/tftp
+Restart the TFTP Service:
+
+$ sudo /etc/init.d/xinetd restart
+
