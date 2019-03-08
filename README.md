@@ -499,4 +499,51 @@ Save first script in another variable:
      setenv bootcmdtftp ${bootcmd}
 
 
+You  see Linux boot and finally panicking. This is expected: we haven’t provided aworking root filesystem for our device yet.
 
+![alt text](./imgs/kpanic.png "Logo Title Text 1")
+
+
+# Tiny embedded system with Busy-Box
+
+![alt text](./imgs/tiny.png "Logo Title Text 1")
+
+
+## Setting up the NFS server
+
+Go to the $HOME/embedded-linux-labs/tinysystem/ directory.
+
+    $ sudo apt install nfs-kernel-server
+
+    $ sudo gedit /etc/exports
+
+Add the following line suppose IP address of our board will be 192.168.0.100:
+
+    /home/<user>/embedded-linux-labs/tinysystem/nfsroot 192.168.0.100(rw,no_root_squash,no_subtree_check)
+
+Then:
+
+    $ sudo service nfs-kernel-server restart
+
+
+## Booting the system
+
+From U-boot shell add this variabler in one-line:
+
+    setenv bootargs console=ttyS0,115200 root=/dev/nfs ip=192.168.0.100:::::eth0 nfsroot=192.168.0.1:/home/<user>/embedded-linux-labs/tinysystem/nfsroot,nfsvers=3 rw
+
+    saveenv
+
+
+![alt text](./imgs/kpanic2.png "Logo Title Text 1")
+
+
+## Root filesystem with Busybox
+
+Download the sources of latest of Busybox:
+
+https://busybox.net/
+
+Install required packages:
+
+    $ sudo apt install libglade2-dev
