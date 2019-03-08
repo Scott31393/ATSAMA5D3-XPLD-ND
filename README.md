@@ -6,6 +6,8 @@ Bring up Linux kernel 5.0 on ATSAMA5D3-XPLD-ND
 
 ![alt text](./imgs/board.jpg "Logo Title Text 1")
 
+![alt text](./imgs/block_diagram.png "Logo Title Text 1")
+
 
 ![alt text](./imgs/board.jpeg "Logo Title Text 1")
 
@@ -400,7 +402,75 @@ Note that you should edit .dts files according to the implemented hardware desig
 ##2----> https://forum.rocketboards.org/t/build-own-device-tree-and-linux-kernel/177/13
 
 
-Read the Linaro guide in this Folder (4_6048767180722406692.pdf)
+Read the Linaro guide in this Folder (4_6048767180722406692.pdf) or the following tutorial:
 
 
-# Load and boot the kernel using U-Boot
+---> http://xillybus.com/tutorials/device-tree-zynq-1
+
+
+---> https://www.youtube.com/watch?v=zkCbO4XhKx4&t=308s
+
+
+![alt text](./imgs/dtree_node.png "Logo Title Text 1")
+![alt text](./imgs/dtree_node1.png "Logo Title Text 1")
+![alt text](./imgs/dtree_node2.png "Logo Title Text 1")
+![alt text](./imgs/dtree_node3.png "Logo Title Text 1")
+![alt text](./imgs/mm1.png "Logo Title Text 1")
+![alt text](./imgs/AIC_interrupt_vector_register.png "Logo Title Text 1")
+
+# Booting Kernel using U-Boot
+
+![alt text](./imgs/nand_m.png "Logo Title Text 1")
+
+There are two ways to boot the kernel using U-Boot:
+
+1. Using tftp connection, booting from tftp. From U-Boot:
+
+Commands:
+
+    * tftp 0x21000000 zImage
+    * tftp 0x22000000 at91-sama5d3_xplained.dtb
+    * bootz 0x21000000 - 0x22000000
+
+Scripts in U-boot "bootcmd" variable:
+
+    * setenv bootcmd 'tftp 0x21000000 zImage; tftp 0x22000000 at91-sama5d3_xplained.dtb;  bootz 0x21000000 - 0x22000000'
+    * saveenv
+    * press the board reset button to check
+
+
+2. Booting Kernel image and .dtb from Nand flash.
+
+From tftp server to RAM address:
+
+    * tftp 0x21000000 zImage
+    * tftp 0x22000000 at91-sama5d3_xplained.dtb
+
+Erase the NAND flash memory:
+
+    * nand erase 0x140000 0x20000
+    * nand erase 0x160000 0x500000
+
+Write from  RAM address to NAND flash memory address:
+
+    * nand write 0x22000000 0x140000 0x20000
+    * nand write 0x21000000 0x160000 0x500000
+
+Read from NAND memory using RAM memory and booting the kernel:
+    
+    * nand read 0x22000000 0x140000 0x20000
+    * nand read 0x21000000 0x160000 0x500000
+    * bootz 0x21000000 - 0x22000000
+
+Scripts in U-boot "bootcmd" variable:
+
+    * setenv bootcmd 'nand read 0x22000000 0x140000 0x20000; nand read 0x21000000 0x160000 0x500000; bootz 0x21000000 - 0x22000000'
+    * saveenv
+    * press the board reset button to check
+
+Save first script in another variable:
+
+    * setenv bootcmdtftp ${bootcmd}
+
+
+After we chose the type of booting procedure you need to automate it writing u-boot script that do that.
