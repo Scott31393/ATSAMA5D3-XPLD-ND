@@ -1,6 +1,13 @@
 # ATSAMA5D3-XPLD-ND
 Bring up Linux kernel 5.0 on ATSAMA5D3-XPLD-ND
 
+# EXPORT IN THE RIGHT WAY
+
+    ##BRING UP LINUX
+    export PATH=~/x-tools/arm-cortexa5-linux-uclibcgnueabihf/bin:$PATH
+    export CROSS_COMPILE=arm-linux-
+    export ARCH=arm
+
 
 ## Board Connections
 
@@ -540,6 +547,12 @@ From U-boot shell add this variabler in one-line:
 
 ## Root filesystem with Busybox
 
+First in nfsroot folder create dev folder:
+
+    $ cd nfsroot
+
+    $ mkdir dev
+
 Download the sources of latest of Busybox:
 
 https://busybox.net/
@@ -547,3 +560,43 @@ https://busybox.net/
 Install required packages:
 
     $ sudo apt install libglade2-dev
+
+
+configure BusyBox with the configuration file provided in the data, or modify .config file that appear after we use:
+
+    $ make menuconfig
+
+Specify the installation directory for Busy-Box in this case:
+
+    $ ../nfsroot
+
+We can change using again:
+
+    $ make menuconfig
+
+In Install Options -> BusyBox installation prefix. Then:
+
+    $ make install
+
+Create in the target /sys, /proc, /etc directory, then reboot.
+
+Create a /etc/inittab file and a /etc/init.d/rcS startup script declared in /etc/
+inittab. In this startup script, mount the /proc and /sys filesystems.
+In the BusyBox sources, read details about /etc/inittab in the examples/inittab file.
+
+## Starting the shell in a proper terminal
+
+In /etc/inittab change:
+
+    ::askfirst:/bin/sh
+
+with:
+
+    ttyS0::askfirst:/bin/sh
+
+On /etc/iniot.d/rcS mount the /proc and /sys filesystems:
+
+    #!/bin/busybox sh
+    mount -t proc p /proc
+    mount -t proc p /sys
+
